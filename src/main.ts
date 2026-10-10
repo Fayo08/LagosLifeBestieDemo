@@ -15,6 +15,9 @@ import type { Camera } from './ride/renderer.ts';
 
 setArriveHandler(A.arrive);
 
+// ?embed shows only the phone, for embedding the demo in another page (e.g. a portfolio)
+if (new URLSearchParams(location.search).has('embed')) document.body.classList.add('embed');
+
 $('#nav').addEventListener('click', (e) => {
   const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button');
   if (b?.dataset.tab) setTab(b.dataset.tab as Tab);

@@ -361,3 +361,10 @@ code{font-family:var(--mono);font-size:.92em;background:var(--card-2);padding:1p
 .cta .ic{font-size:26px}
 /* Content children keep their natural height so the tab scrolls instead of squashing them */
 .content > *{flex-shrink:0}
+
+/* Embed mode: just the phone, centred, no pitch notes */
+body.embed{background:transparent}
+body.embed .stage{grid-template-columns:minmax(0,1fr);justify-items:center;padding:0;gap:0}
+body.embed .notes{display:none}
+body.embed .phone{width:min(410px,100%)}
+@media (max-width:480px){body.embed .screen{height:min(800px,100dvh)}}
