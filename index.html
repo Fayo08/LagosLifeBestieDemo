@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Lagos Life Besties</title>
-  <meta name="description" content="A working prototype of a Besties feature for Lagos Life: co-own companies, split profits, and ride through Lagos together.">
+  <meta name="description" content="A working prototype of a Besties feature for Lagos Life: chat streaks that unlock a company together, trust you build by going places, and shared rides through Lagos.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -15,34 +15,39 @@
     <section class="notes">
       <div class="eyebrow">Feature concept for Lagos Life</div>
       <h1>Bes<span>ties.</span></h1>
-      <p>Lagos Life already has friends, chats, companies and rides across the city. <strong>Besties</strong> ties them together: two players who own businesses together, split the till, and ride through Lagos in the same car.</p>
-      <p>This is a working prototype. Every number on the phone is computed: ownership, profit splits, votes, fares, needs and travel time.</p>
+      <p>It starts in your messages. Chat with a friend <strong>three days running</strong> and the streak unlocks a company you start together. Going places together is open from day one, and every chat, ride and activity builds <strong>trust</strong>.</p>
+      <p>This is a working prototype. Every number on the phone is computed: streaks, trust, ownership, profit splits, fares and travel time.</p>
       <ol class="try">
-        <li><div>Ask @ochibu to be your bestie<span>Bestie tab. Needs 80 friendship, so the others are locked.</span></div></li>
-        <li><div>Sell them a stake in Nollyflix, then cash out<span>Company tab. The till splits by ownership, to the naira.</span></div></li>
-        <li><div>Propose a new branch and watch the vote<span>Spends of ₦1m or more need both owners.</span></div></li>
-        <li><div>Ride to Yaba together<span>Map tab. Pick a ride, then switch cameras, change the station, gist, and buy gala from a hawker in the Third Mainland go-slow.</span></div></li>
+        <li><div>Message @ochibu<span>Phone tab. You're on a 2-day streak, so one message today makes it 3 and they become your bestie.</span></div></li>
+        <li><div>Start a company together<span>You each put money in and own it by what you put in, to the basis point.</span></div></li>
+        <li><div>Link up and ride to Quilox<span>Pick a ride, switch cameras, change the station and gist on the way.</span></div></li>
+        <li><div>Do things together when you land<span>You'll see both of you in the room. Every activity together builds trust, and Paddy trust splits cabs.</span></div></li>
       </ol>
+      <div class="timectl" role="group" aria-label="Time of day">
+        <span>Time of day</span>
+        <button class="linkbtn" data-time="day">☀️ 9 AM</button>
+        <button class="linkbtn" data-time="night">🌙 10 PM</button>
+      </div>
       <div class="byline">
-        <div>Designed and built by <b>Fayosi</b>, frontend and UX developer. Independent concept, not affiliated with the Lagos Life team.</div>
+        <div>Designed and built by <b>Favour Oyende</b>, frontend and UX developer. Independent concept, not affiliated with the Lagos Life team.</div>
         <button class="linkbtn" id="reset">Reset demo</button>
       </div>
     </section>
 
     <div class="phone">
-      <div class="screen">
+      <div class="screen night" id="screen">
         <div class="hud">
-          <span aria-hidden="true">🌙</span>
+          <span aria-hidden="true" id="hudSky">🌙</span>
           <span class="time" id="hudTime">10:40 PM</span>
           <span class="mood" id="hudMood">Happy</span>
           <span class="cash"><span id="hudCash">₦1,170,512,748</span><span class="plus" aria-hidden="true">+</span></span>
         </div>
-        <div class="pills"><span>👀 29.1m visits</span><span class="on">● 151k online</span></div>
+        <div class="pills"><span>👀 29.5m visits</span><span class="on">● 50k online</span></div>
         <div class="toasts" id="toasts" aria-live="polite"></div>
         <main class="content" id="content"></main>
 
         <div class="ride" id="ride" hidden>
-          <canvas id="rideCv" aria-label="Night drive through Lagos"></canvas>
+          <canvas id="rideCv" aria-label="Drive through Lagos"></canvas>
           <div class="ride-top">
             <div class="ride-pill" id="rideTitle">On the way…</div>
             <div class="ride-ctrls">
@@ -66,10 +71,11 @@
         </div>
 
         <nav class="nav" id="nav">
-          <button data-tab="bestie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Bestie</button>
-          <button data-tab="company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4"/></svg>Company</button>
+          <button data-tab="here"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg>Home</button>
           <button data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>Map</button>
-          <button data-tab="code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></svg>Under hood</button>
+          <button data-tab="phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg>Phone<span class="dot" id="phoneDot" hidden></span></button>
+          <button data-tab="company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4"/></svg>Company</button>
+          <button data-tab="code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></svg>Dev</button>
         </nav>
       </div>
     </div>

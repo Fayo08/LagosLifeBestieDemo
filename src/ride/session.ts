@@ -1,12 +1,12 @@
 import type { ModeId, PlaceId } from '../types.ts';
 import { S } from '../state.ts';
 import { PLACES } from '../data/places.ts';
-import { GIST, IDLE_LINES, NEEDS, STATIONS } from '../data/script.ts';
+import { GIST, IDLE_LINES, NEEDS, STATIONS, TRUST } from '../data/script.ts';
 import { ME } from '../data/seed.ts';
-import { bestieOf } from '../game/people.ts';
-import { addXP } from '../game/bond.ts';
+import { friendOf } from '../game/people.ts';
+import { addTrust } from '../game/social.ts';
 import { boost } from '../game/needs.ts';
-import { clamp, fmt } from '../game/format.ts';
+import { clamp, fmt, isDay } from '../game/format.ts';
 import { getMode, rideMinutes, trip } from '../game/travel.ts';
 import { $, avatar, pick, toast } from '../ui/dom.ts';
 import { MAP_BASE } from '../ui/mapArt.ts';
@@ -21,7 +21,8 @@ interface Ride {
   loc: PlaceId;
   from: PlaceId;
   mode: ModeId;
-  together: boolean;
+  /** Friend riding with you, or null. */
+  with: string | null;
   minutes: number;
   durationMs: number;
   progress: number;
@@ -36,7 +37,7 @@ interface Ride {
 }
 
 export let ride: Ride | null = null;
-let onArrive: (r: { loc: PlaceId; mode: ModeId; minutes: number; together: boolean }) => void = () => {};
+let onArrive: (r: { loc: PlaceId; mode: ModeId; minutes: number; with: string | null }) => void = () => {};
 
 export function setArriveHandler(fn: typeof onArrive): void {
   onArrive = fn;
@@ -47,19 +48,19 @@ export const isRiding = (): boolean => !!ride?.on;
 /** Go-slow window on Third Mainland Bridge, as a fraction of the trip. */
 const GO_SLOW = [0.32, 0.58] as const;
 
-export function startRide(loc: PlaceId, mode: ModeId, together: boolean): void {
+export function startRide(loc: PlaceId, mode: ModeId, withId: string | null): void {
   const from = S.me.pos;
   const t = trip(from, loc);
   const minutes = rideMinutes(from, loc, mode);
-  const f = together ? bestieOf(S) : null;
+  const f = friendOf(S, withId);
   ride = {
-    on: true, loc, from, mode, together, minutes,
+    on: true, loc, from, mode, with: f?.id ?? null, minutes,
     durationMs: Math.max(10_000, Math.min(20_000, minutes * 240)),
     progress: 0,
     goSlow: { enabled: t.crossesLagoon, active: false, done: false },
     galaBought: false, mapOpen: false, cooldowns: {},
     nextIdleLine: performance.now() + 9000, last: 0, raf: 0,
-    scene: { mode, cam: 'chase', dist: 0, station: 0, me: S.me, bestie: f, traffic: makeTraffic(), rain: makeRain(), sky: makeSky() },
+    scene: { mode, cam: 'chase', dist: 0, station: 0, me: S.me, friend: f, day: isDay(S.minutes), traffic: makeTraffic(), rain: makeRain(), sky: makeSky() },
   };
   $('#rideTitle').textContent = `${getMode(mode).e} On the way to ${PLACES[loc].name}…`;
   $('#bubbles').innerHTML = '';
@@ -69,7 +70,7 @@ export function startRide(loc: PlaceId, mode: ModeId, together: boolean): void {
   renderRideActions();
   renderNeedPill();
   if (f) {
-    const line = f.pos === S.me.pos || mode === 'bcar'
+    const line = f.pos === S.me.pos || mode === 'fcar'
       ? `${PLACES[loc].name} tonight? Your account must be heavy o.`
       : 'I’m outside! Don’t go without me 🏃🏾';
     setTimeout(() => bubble(f.id, line), 600);
@@ -99,7 +100,7 @@ function loop(ts: number): void {
   if (inGoSlow && !r.goSlow.active) {
     r.goSlow.active = true;
     renderRideActions();
-    bubble(s.bestie?.id ?? null, s.bestie ? 'Go-slow on Third Mainland again? Lagos, why?' : 'Go-slow on Third Mainland Bridge');
+    bubble(s.friend?.id ?? null, s.friend ? 'Go-slow on Third Mainland again? Lagos, why?' : 'Go-slow on Third Mainland Bridge');
   }
   if (r.goSlow.active && !r.goSlow.done && r.progress >= GO_SLOW[1]) {
     r.goSlow.done = true;
@@ -128,16 +129,16 @@ function loop(ts: number): void {
   }
 
   const visible = !$('#ride').hidden;
-  if (s.bestie && visible && ts > r.nextIdleLine) {
+  if (s.friend && visible && ts > r.nextIdleLine) {
     r.nextIdleLine = ts + 6500;
-    bubble(s.bestie.id, pick(IDLE_LINES));
+    bubble(s.friend.id, pick(IDLE_LINES));
   }
   if (visible) {
     drawScene($<HTMLCanvasElement>('#rideCv'), s);
     updateRideHud();
   }
   if (r.progress >= 1) {
-    const done = { loc: r.loc, mode: r.mode, minutes: r.minutes, together: r.together };
+    const done = { loc: r.loc, mode: r.mode, minutes: r.minutes, with: r.with };
     stopRide();
     onArrive(done);
     return;
@@ -162,7 +163,7 @@ function updateRideHud(): void {
 
 function buildMiniMap(): void {
   if (!ride) return;
-  const a = PLACES[ride.from], b = PLACES[ride.loc], f = ride.scene.bestie;
+  const a = PLACES[ride.from], b = PLACES[ride.loc], f = ride.scene.friend;
   $('#miniMap').innerHTML = `<svg viewBox="0 0 340 236" aria-label="Route">${MAP_BASE}
     <line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#1faa59" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 9"/>
     <circle cx="${b.x}" cy="${b.y}" r="11" fill="#fff"/><text x="${b.x}" y="${b.y + 4}" text-anchor="middle" font-size="12">${b.emo}</text>
@@ -191,9 +192,9 @@ function renderCams(): void {
     b.classList.toggle('on', b.dataset.cam === s.cam);
     b.disabled = b.dataset.cam === 'seat' && noSeat;
   });
-  const f = s.bestie;
+  const f = s.friend;
   const seatHints: Partial<Record<ModeId, string>> = {
-    bcar: `@${f?.id} is driving · you're up front`,
+    fcar: `@${f?.id} is driving · you're up front`,
     driver: f ? 'Your driver up front · you two in the back' : 'Your driver up front',
     cab: 'Cab driver up front · back seat',
     keke: 'Back bench of the keke',
@@ -210,13 +211,13 @@ function renderRideActions(): void {
   const r = ride;
   const cooling = (k: string) => (r.cooldowns[k] ?? 0) > performance.now();
   let h = `<button class="ract" data-ra="radio" ${cooling('radio') ? 'disabled' : ''}>🎶 Change station</button>`;
-  if (r.together) h += `<button class="ract" data-ra="gist" ${cooling('gist') ? 'disabled' : ''}>💬 Gist</button>`;
-  if (r.goSlow.active && !r.goSlow.done && !r.galaBought) h += `<button class="ract hot" data-ra="gala">🍪 Gala from hawker · ${fmt(r.together ? 1000 : 500)}</button>`;
+  if (r.with) h += `<button class="ract" data-ra="gist" ${cooling('gist') ? 'disabled' : ''}>💬 Gist</button>`;
+  if (r.goSlow.active && !r.goSlow.done && !r.galaBought) h += `<button class="ract hot" data-ra="gala">🍪 Gala from hawker · ${fmt(r.with ? 1000 : 500)}</button>`;
   $('#rideActs').innerHTML = h;
 }
 
 export function renderNeedPill(): void {
-  const f = ride?.scene.bestie ?? null;
+  const f = ride?.scene.friend ?? null;
   $('#needPill').innerHTML = `<div class="avs">${avatar(ME, 46)}${f ? avatar(f.id, 46) : ''}</div><div class="bars">${NEEDS.map(
     (n) => `<div class="nb" title="${n.label}"><span>${n.emoji}</span><div class="bar"><i style="width:${S.needs[n.key]}%;background:${S.needs[n.key] < 35 ? 'var(--amber)' : 'var(--green)'}"></i></div></div>`,
   ).join('')}</div>`;
@@ -240,15 +241,14 @@ export function rideAction(action: 'radio' | 'gist' | 'gala'): boolean {
   const r = ride;
   if (!r) return false;
   const now = performance.now();
-  const f = r.scene.bestie;
+  const f = r.scene.friend;
   let cashChanged = false;
   if (action === 'radio') {
     r.scene.station = (r.scene.station + 1) % STATIONS.length;
     const st = STATIONS[r.scene.station];
-    const v = boost(S, 'fun', 3, r.together);
+    const v = boost(S, 'fun', 3, !!r.with);
     if (f) {
       bubble(f.id, st.line);
-      addXP(S, 2).forEach((m) => toast(m, 'good'));
     } else bubble(null, `Now playing: ${st.name}`);
     toast(`📻 ${st.name} · +${v} Fun`);
     r.cooldowns.radio = now + 2200;
@@ -258,11 +258,11 @@ export function rideAction(action: 'radio' | 'gist' | 'gala'): boolean {
     bubble(ME, mine, true);
     setTimeout(() => bubble(f.id, theirs), 1100);
     const v = boost(S, 'social', 4, true);
-    addXP(S, 3).forEach((m) => toast(m, 'good'));
-    toast(`+${v} Social · +3 bond XP`);
+    addTrust(S, f.id, TRUST.gist).forEach((m) => toast(m, 'good'));
+    toast(`+${v} Social · +${TRUST.gist} trust with @${f.id}`);
     r.cooldowns.gist = now + 2600;
   } else if (action === 'gala') {
-    const cost = r.together ? 1000 : 500;
+    const cost = r.with ? 1000 : 500;
     if (S.me.cash < cost) {
       toast("You can't afford that", 'bad');
       return false;
@@ -279,4 +279,8 @@ export function rideAction(action: 'radio' | 'gist' | 'gala'): boolean {
   renderNeedPill();
   setTimeout(() => renderRideActions(), 2700);
   return cashChanged;
+}
+
+export function setRideDay(day: boolean): void {
+  if (ride) ride.scene.day = day;
 }

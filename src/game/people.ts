@@ -8,32 +8,22 @@ export function person(S: GameState, id: string): Player {
   return p;
 }
 
-/** The current bestie's player record, or null. */
-export function bestieOf(S: GameState): Friend | null {
-  if (!S.bestie) return null;
-  const id = S.bestie.id;
+export function friendOf(S: GameState, id: string | null): Friend | null {
+  if (!id) return null;
   return S.friends.find((f) => f.id === id) ?? null;
 }
 
-/** True when you have a bestie and chose to bring them. */
-export const ridingTogether = (S: GameState): boolean => !!(bestieOf(S) && S.withBf);
-
-export const BESTIE_THRESHOLD = 80;
-
-export function canAskToBeBestie(S: GameState, friendId: string): boolean {
-  const f = S.friends.find((x) => x.id === friendId);
-  return !!f && !S.bestie && !S.pending && f.score >= BESTIE_THRESHOLD;
+/** The current bestie's player record, or null. */
+export function bestieOf(S: GameState): Friend | null {
+  return friendOf(S, S.bestie?.id ?? null);
 }
 
-export function makeBesties(S: GameState, friendId: string): void {
-  S.pending = null;
-  S.bestie = { id: friendId, since: S.day, level: 1, xp: 20, hangouts: 0, earned: 0 };
-  log(S, `You and @${friendId} became besties`);
-}
-
-/** You can't end a bestie-ship while you still share a company or a ride. */
+/** You can't end a bestie-ship while you still share a company or are out together. */
 export function canEndBestieship(S: GameState, riding: boolean): boolean {
-  return !!S.bestie && !riding && !S.companies.some((c) => c.owners.length > 1);
+  if (!S.bestie) return false;
+  const id = S.bestie.id;
+  const sharesCompany = S.companies.some((c) => c.owners.some((o) => o.id === id));
+  return !riding && !sharesCompany;
 }
 
 export function log(S: GameState, text: string): void {

@@ -1,6 +1,8 @@
 import { S } from '../../state.ts';
 import { ME } from '../../data/seed.ts';
 import { bestieOf, person } from '../../game/people.ts';
+import { canStartCompanyWith, liveStreak } from '../../game/social.ts';
+import { STREAK_TO_UNLOCK } from '../../data/script.ts';
 import { fmt, short } from '../../game/format.ts';
 import { split } from '../../game/money.ts';
 import { MAX_STAKE_PCT, getCompany, isCoOwned, stakePrice } from '../../game/company.ts';
@@ -12,7 +14,7 @@ export function companyView(): string {
   const f = bestieOf(S);
   const shares = split(c.till, c.owners);
 
-  let h = `${rideBanner()}
+  let h = `${rideBanner()}${startTogetherCta()}
   <div class="chips">${S.companies.map((x) => `<button class="chip ${x.id === S.selCo ? 'on' : ''}" data-act="co" data-id="${x.id}">${isCoOwned(x) ? '<span class="dot"></span>' : ''}${x.name}</button>`).join('')}</div>
   <div class="till">
     <span class="lbl">Till${coOwned ? ' · shared' : ''}</span>
@@ -62,4 +64,17 @@ export function companyView(): string {
     </div>`;
   }
   return h;
+}
+
+function startTogetherCta(): string {
+  const f = bestieOf(S);
+  if (f && canStartCompanyWith(S, f.id)) {
+    const already = S.companies.some((c) => c.owners.some((o) => o.id === f.id));
+    return `<div class="card"><div class="cta"><span class="ic">🤝</span><div class="grow"><b>Start ${already ? 'another' : 'a'} company with @${f.id}</b><div class="tiny muted">You each put money in and own it by what you put in.</div></div>
+      <button class="btn sm btn-green" data-act="startupOpen" data-id="${f.id}">Start</button></div></div>`;
+  }
+  const best = [...S.friends].sort((a, b) => liveStreak(b, S.day) - liveStreak(a, S.day))[0];
+  const n = best ? liveStreak(best, S.day) : 0;
+  return `<div class="card"><div class="cta"><span class="ic">🔥</span><div class="grow"><b>Start a company with a friend</b><div class="tiny muted">Keep a ${STREAK_TO_UNLOCK}-day chat streak to unlock it.${best ? ` You're on ${n} with @${best.id}.` : ''}</div></div>
+    <button class="btn sm btn-ghost" data-act="tab" data-tab="phone">Messages</button></div></div>`;
 }

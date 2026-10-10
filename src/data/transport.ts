@@ -8,5 +8,5 @@ export const MODES: Mode[] = [
   { id: 'okada', name: 'Okada', e: '🏍️', price: 1_500, per: 'seat', mult: 0.7 },
   { id: 'cab', name: 'Cab', e: '🚕', price: 3_000, per: 'car', mult: 1 },
   { id: 'driver', name: 'Driver', e: '👨🏾‍✈️', price: 0, per: 'car', mult: 1 },
-  { id: 'bcar', name: "Bestie's car", e: '🚙', price: 0, per: 'car', mult: 1, bestie: true },
+  { id: 'fcar', name: "Friend's car", e: '🚙', price: 0, per: 'car', mult: 1, friendCar: true },
 ];

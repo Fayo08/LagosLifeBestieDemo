@@ -35,7 +35,9 @@ export interface Scene {
   station: number;
   me: Person;
   /** Null when riding alone. */
-  bestie: Person | null;
+  friend: Person | null;
+  /** Daylight palette instead of night. */
+  day: boolean;
   traffic: Car[];
   rain: Drop[];
   sky: Building[];
@@ -74,7 +76,7 @@ export function makeTraffic(): Car[] {
 /** Who sits where, front row and back row, left to right. */
 export function seating(mode: ModeId, me: Person, bf: Person | null): { front: (Person | null)[]; mid?: (Person | null)[]; back: (Person | null)[] | null } {
   switch (mode) {
-    case 'bcar': return { front: [bf, me], back: null };
+    case 'fcar': return { front: [bf, me], back: null };
     case 'driver':
     case 'cab': return { front: [DRIVER, null], back: [me, bf] };
     case 'keke': return { front: [null, DRIVER], back: [me, bf] };
@@ -155,17 +157,17 @@ export function drawScene(cv: HTMLCanvasElement, s: Scene): void {
 
   // Sky and skyline
   const g = c.createLinearGradient(0, 0, 0, hz);
-  g.addColorStop(0, '#05081a');
-  g.addColorStop(1, '#1a2350');
+  g.addColorStop(0, s.day ? '#6aaee8' : '#05081a');
+  g.addColorStop(1, s.day ? '#cfe6f8' : '#1a2350');
   c.fillStyle = g;
   c.fillRect(0, 0, W, hz + 1);
   for (const back of [true, false]) {
     for (const b of s.sky.filter((x) => x.back === back)) {
       const h = b.h * H * (back ? 1.15 : 1), x = b.x * W - sway * (back ? 0.3 : 0.6), y = hz - h;
-      c.fillStyle = back ? '#5d6a8e' : '#c5cee0';
+      c.fillStyle = s.day ? (back ? '#a9b8cf' : '#e8edf4') : back ? '#5d6a8e' : '#c5cee0';
       c.fillRect(x, y, b.w * W, h);
       if (!back) {
-        c.fillStyle = 'rgba(255,236,170,.55)';
+        c.fillStyle = s.day ? 'rgba(70,110,160,.45)' : 'rgba(255,236,170,.55)';
         for (let wy = y + 6; wy < hz - 6; wy += 9)
           for (let wx = x + 4; wx < x + b.w * W - 4; wx += 7)
             if (((wx * 7 + wy * 13) | 0) % 5 === 0) c.fillRect(wx, wy, 2.5, 3);
@@ -178,7 +180,10 @@ export function drawScene(cv: HTMLCanvasElement, s: Scene): void {
   }
 
   // Ground, road, median, curbs
-  c.fillStyle = '#0b0f1e';
+  const pal = s.day
+    ? { ground: '#55663f', side: '#9aa0ab', road: '#3b404d', median: '#3f8a46', curb: '#d6d9df', dash: 'rgba(255,255,255,.95)', pole: '#6b7280', palm: '#2e6b3a' }
+    : { ground: '#0b0f1e', side: '#20253c', road: '#12162a', median: '#1d4a2c', curb: '#8c93a8', dash: 'rgba(230,233,240,.85)', pole: '#2a3150', palm: '#0d2418' };
+  c.fillStyle = pal.ground;
   c.fillRect(0, hz, W, H - hz);
   const strip = (X1: number, X2: number, z1: number, z2: number, fill: string) => {
     const a = P(X1, z1), b = P(X2, z1), d = P(X2, z2), e = P(X1, z2);
@@ -188,17 +193,17 @@ export function drawScene(cv: HTMLCanvasElement, s: Scene): void {
     c.fillStyle = fill;
     c.fill();
   };
-  strip(0.98, 2.4, 0.55, 80, '#20253c');
-  strip(-0.98, 0.98, 0.55, 80, '#12162a');
-  strip(-1.32, -1.0, 0.55, 80, '#1d4a2c');
-  strip(-1.0, -0.98, 0.55, 80, '#8c93a8');
-  strip(0.98, 1.0, 0.55, 80, '#8c93a8');
+  strip(0.98, 2.4, 0.55, 80, pal.side);
+  strip(-0.98, 0.98, 0.55, 80, pal.road);
+  strip(-1.32, -1.0, 0.55, 80, pal.median);
+  strip(-1.0, -0.98, 0.55, 80, pal.curb);
+  strip(0.98, 1.0, 0.55, 80, pal.curb);
 
   // Lane dashes scroll with distance travelled
   const L = 4, N = 22;
   for (let i = 0; i < N; i++) {
     const z = (((i * L - s.dist) % (N * L)) + N * L) % (N * L) + 0.8;
-    for (const X of [-0.33, 0.33]) strip(X - 0.012, X + 0.012, z, z + 1.7, 'rgba(230,233,240,.85)');
+    for (const X of [-0.33, 0.33]) strip(X - 0.012, X + 0.012, z, z + 1.7, pal.dash);
   }
 
   // Roadside objects and traffic, far to near
@@ -212,10 +217,15 @@ export function drawScene(cv: HTMLCanvasElement, s: Scene): void {
     if (o.t === 'lamp') {
       const [x, y, k] = P(-1.16, o.z);
       const h = 1.15 * W * k;
-      c.strokeStyle = '#2a3150';
+      c.strokeStyle = pal.pole;
       c.lineWidth = Math.max(1, W * k * 0.02);
       c.beginPath(); c.moveTo(x, y); c.lineTo(x, y - h); c.lineTo(x + W * k * 0.32, y - h); c.stroke();
       const lx = x + W * k * 0.32, ly = y - h + W * k * 0.02, r = Math.max(1.5, W * k * 0.05);
+      if (s.day) {
+        c.fillStyle = '#cfd4dc';
+        c.beginPath(); c.arc(lx, ly, r, 0, Math.PI * 2); c.fill();
+        continue;
+      }
       const gr = c.createRadialGradient(lx, ly, 0, lx, ly, r * 5);
       gr.addColorStop(0, 'rgba(255,232,170,.55)');
       gr.addColorStop(1, 'rgba(255,232,170,0)');
@@ -226,7 +236,7 @@ export function drawScene(cv: HTMLCanvasElement, s: Scene): void {
     } else if (o.t === 'palm') {
       const [x, y, k] = P(1.6, o.z);
       const h = 1.2 * W * k, tx = x - W * k * 0.02;
-      c.strokeStyle = '#0d2418';
+      c.strokeStyle = pal.palm;
       c.lineWidth = Math.max(1, W * k * 0.035);
       c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + W * k * 0.08, y - h * 0.5, tx, y - h); c.stroke();
       c.lineWidth = Math.max(1, W * k * 0.03);
@@ -256,7 +266,8 @@ export function drawScene(cv: HTMLCanvasElement, s: Scene): void {
   else if (s.cam === 'seat') drawSeat(c, W, H, s);
   else drawEyes(c, W, H, s);
 
-  // Rain in front of everything
+  // Night rain in front of everything
+  if (s.day) return;
   c.strokeStyle = 'rgba(220,228,255,.28)';
   c.lineWidth = 1;
   c.beginPath();
@@ -270,12 +281,12 @@ export function drawScene(cv: HTMLCanvasElement, s: Scene): void {
 
 function drawChase(c: CanvasRenderingContext2D, W: number, H: number, s: Scene): void {
   const bob = Math.sin(s.dist * 1.6) * 1.5;
-  const bx = W / 2, by = H * 0.73 + bob, me = s.me, f = s.bestie, m = s.mode;
+  const bx = W / 2, by = H * 0.73 + bob, me = s.me, f = s.friend, m = s.mode;
 
-  if (m === 'bcar' || m === 'driver' || m === 'cab') {
-    const base = m === 'cab' ? '#e3ad1c' : m === 'bcar' && f ? f.color : '#1d2747';
-    const color = m === 'bcar' ? shade(base, -0.35) : base;
-    const roof = m === 'bcar' ? shade(base, -0.3) : shade(base, 0.06);
+  if (m === 'fcar' || m === 'driver' || m === 'cab') {
+    const base = m === 'cab' ? '#e3ad1c' : m === 'fcar' && f ? f.color : '#1d2747';
+    const color = m === 'fcar' ? shade(base, -0.35) : base;
+    const roof = m === 'fcar' ? shade(base, -0.3) : shade(base, 0.06);
     const w = W * 0.6, h = w * 0.58, x = bx - w / 2, y = by - h;
     rr(c, x + w * 0.03, y + h * 0.78, w * 0.17, h * 0.3, 8, '#04060c');
     rr(c, x + w * 0.8, y + h * 0.78, w * 0.17, h * 0.3, 8, '#04060c');
@@ -285,9 +296,9 @@ function drawChase(c: CanvasRenderingContext2D, W: number, H: number, s: Scene):
     rr(c, wx, wy, ww, wh, w * 0.04, '#0b1024');
     c.save();
     c.beginPath(); c.rect(wx, wy, ww, wh); c.clip();
-    const occ = m === 'bcar' ? [f, me] : [me, f];
+    const occ = m === 'fcar' ? [f, me] : [me, f];
     occ.forEach((p, i) => { if (p) head(c, wx + ww * (i ? 0.7 : 0.3), wy + wh * 0.72, wh * 0.36, p, 'rgba(255,255,255,.6)'); });
-    if (m !== 'bcar') head(c, wx + ww * 0.3, wy + wh * 0.38, wh * 0.2, DRIVER, 'rgba(255,255,255,.3)');
+    if (m !== 'fcar') head(c, wx + ww * 0.3, wy + wh * 0.38, wh * 0.2, DRIVER, 'rgba(255,255,255,.3)');
     c.fillStyle = 'rgba(160,180,255,.12)';
     c.beginPath(); c.moveTo(wx, wy); c.lineTo(wx + ww * 0.35, wy); c.lineTo(wx + ww * 0.1, wy + wh); c.lineTo(wx, wy + wh); c.fill();
     c.restore();
@@ -386,7 +397,7 @@ function drawSeat(c: CanvasRenderingContext2D, W: number, H: number, s: Scene): 
   rr(c, -10, H * 0.49, W + 20, H * 0.06, 12, '#11162a');
   radio(c, W * 0.42, H * 0.5, W * 0.16, H * 0.026, s.station);
 
-  const o = seating(s.mode, s.me, s.bestie);
+  const o = seating(s.mode, s.me, s.friend);
   const row = (arr: (Person | null)[], y: number, r: number, seatW: number, seatTop: number, gap: number) =>
     arr.forEach((p, i) => {
       const x = W * (arr.length === 2 ? (i ? 0.5 + gap : 0.5 - gap) : 0.5);
@@ -409,7 +420,7 @@ function drawSeat(c: CanvasRenderingContext2D, W: number, H: number, s: Scene): 
 }
 
 function drawEyes(c: CanvasRenderingContext2D, W: number, H: number, s: Scene): void {
-  const f = s.bestie, m = s.mode;
+  const f = s.friend, m = s.mode;
   if (m === 'okada' || m === 'trek') {
     if (f) head(c, W, H * 0.55, W * 0.15, f);
     if (m === 'okada') {
@@ -424,7 +435,7 @@ function drawEyes(c: CanvasRenderingContext2D, W: number, H: number, s: Scene): 
   c.beginPath(); c.moveTo(0, 0); c.lineTo(W * 0.07, 0); c.lineTo(0, H * 0.66); c.fill();
   c.beginPath(); c.moveTo(W, 0); c.lineTo(W * 0.93, 0); c.lineTo(W, H * 0.66); c.fill();
   radio(c, W * 0.4, H * 0.635, W * 0.2, H * 0.032, s.station);
-  if (m === 'bcar') {
+  if (m === 'fcar') {
     c.strokeStyle = '#1f2540';
     c.lineWidth = W * 0.035;
     c.beginPath(); c.arc(W * 0.14, H * 0.8, W * 0.17, Math.PI * 1.15, Math.PI * 1.95); c.stroke();

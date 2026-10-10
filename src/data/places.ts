@@ -1,71 +1,82 @@
 import type { Place, PlaceId } from '../types.ts';
 
 export const PLACES: Record<PlaceId, Place> = {
-  lekki: {
-    name: 'Lekki Phase 1', area: 'Home', emo: '🏠', x: 274, y: 168,
-    blurb: 'Your house. Mallam Musa is at the gate.',
+  home: {
+    name: 'Your house', area: 'Lekki Phase 1', emo: '🏠', scene: 'home', x: 274, y: 168,
+    status: 'Mallam Musa is at the gate.',
     acts: [
-      { label: 'Cook jollof together', fx: { hunger: 22, fun: 6, social: 5, energy: -4 } },
-      { label: 'Binge Nollyflix originals', fx: { fun: 14, social: 4, energy: -3 } },
+      { label: 'Cook jollof', emoji: '🍛', fx: { hunger: 22, fun: 6, social: 5, energy: -4 } },
+      { label: 'Binge Nollyflix', emoji: '📺', fx: { fun: 14, social: 4, energy: -3 } },
+      { label: 'Nap', emoji: '😴', fx: { energy: 25, fun: -2 } },
     ],
   },
-  yaba: {
-    name: 'Yaba', area: 'Tech hub', emo: '💻', x: 118, y: 48,
-    blurb: 'Co-working spaces and cheap amala.',
+  ifitness: {
+    name: 'i-Fitness', area: 'Ikoyi', emo: '🏋️', scene: 'gym', x: 186, y: 126,
+    status: 'Leg day. Every day.',
     acts: [
-      { label: 'Hack on LynqitAI', fx: { energy: -12, fun: 4 }, co: 'lynqit', value: 400_000 },
-      { label: 'Amala at the buka', fx: { hunger: 25, social: 3, bladder: -8 }, cost: 4_500 },
-    ],
-  },
-  surulere: {
-    name: 'Surulere', area: 'Mainland', emo: '🍢', x: 52, y: 76,
-    blurb: 'Suya spots and the National Stadium.',
-    acts: [
-      { label: 'Late-night suya run', fx: { hunger: 18, fun: 8, social: 6 }, cost: 6_000 },
-      { label: 'Five-a-side at the stadium', fx: { fun: 16, social: 8, energy: -18, hygiene: -14 } },
+      { label: 'Weights', emoji: '🏋️', fx: { energy: -14, fun: 6, hygiene: -10 } },
+      { label: 'Treadmills', emoji: '🏃🏾', fx: { energy: -12, fun: 4, hygiene: -8 } },
+      { label: 'Yoga studio', emoji: '🧘🏾', fx: { energy: 6, fun: 8, social: 4 } },
+      { label: 'Protein shake', emoji: '🥤', fx: { hunger: 12 }, cost: 3_500 },
     ],
   },
   balogun: {
-    name: 'Balogun Market', area: 'Lagos Island', emo: '🛍️', x: 118, y: 132,
-    blurb: 'Everything is negotiable.',
+    name: 'Balogun Market', area: 'Lagos Island', emo: '🧺', scene: 'market', x: 118, y: 132,
+    status: 'A truck is offloading at the gate.',
     acts: [
-      { label: 'Haggle for ankara', fx: { fun: 10, social: 6, energy: -6 }, cost: 85_000 },
-      { label: 'Buy matching outfits', fx: { fun: 14, social: 10 }, cost: 240_000 },
+      { label: 'Foodstuff stall', emoji: '🍅', fx: { hunger: 10, social: 4 }, cost: 12_000 },
+      { label: "Alhaji's fabrics", emoji: '🧵', fx: { fun: 12, social: 8 }, cost: 85_000 },
+      { label: 'Wholesale', emoji: '📦', fx: { energy: -8, social: 6 }, cost: 240_000 },
     ],
   },
-  ikoyi: {
-    name: 'Ikoyi', area: 'Nollyflix HQ', emo: '🎬', x: 186, y: 126,
-    blurb: 'Your shop runs here 24/7.',
+  quilox: {
+    name: 'Quilox', area: 'Victoria Island', emo: '🪩', scene: 'club', x: 168, y: 172,
+    status: 'The DJ just dropped the remix.',
     acts: [
-      { label: 'Pep talk the staff', fx: { social: 6, energy: -6 }, co: 'nollyflix', value: 600_000 },
-      { label: 'Brunch at a garden café', fx: { hunger: 20, fun: 8, social: 6 }, cost: 60_000 },
+      { label: 'VIP table', emoji: '🍾', fx: { fun: 20, social: 12, bladder: -12 }, cost: 450_000 },
+      { label: 'Dance floor', emoji: '💃🏾', fx: { fun: 18, social: 10, energy: -14, hygiene: -8 } },
+      { label: 'Spray money', emoji: '💸', fx: { fun: 16, social: 14 }, cost: 500_000 },
     ],
   },
-  vi: {
-    name: 'Victoria Island', area: 'Nightlife', emo: '🪩', x: 168, y: 172,
-    blurb: 'Rooftop lounges until 4 AM.',
+  yabahub: {
+    name: 'Yaba Tech Hub', area: 'Yaba', emo: '💻', scene: 'hub', x: 118, y: 48,
+    status: 'Demo day starts at 4.',
     acts: [
-      { label: 'Owambe on a rooftop', fx: { fun: 24, social: 14, energy: -14, bladder: -12 }, cost: 150_000 },
-      { label: 'Spray money on the dance floor', fx: { fun: 18, social: 10 }, cost: 500_000 },
+      { label: 'Hack on LynqitAI', emoji: '⌨️', fx: { energy: -12, fun: 4 }, co: 'lynqit', value: 400_000 },
+      { label: 'Pitch night', emoji: '🎤', fx: { social: 12, energy: -6 } },
+      { label: 'Amala break', emoji: '🍲', fx: { hunger: 25, bladder: -8 }, cost: 4_500 },
+    ],
+  },
+  suya: {
+    name: "Mallam Sule's Suya", area: 'Surulere', emo: '🍢', scene: 'suya', x: 52, y: 76,
+    status: 'Fresh batch on the grill.',
+    acts: [
+      { label: 'Beef suya', emoji: '🍢', fx: { hunger: 18, fun: 6, social: 6 }, cost: 6_000 },
+      { label: 'Kilishi', emoji: '🥩', fx: { hunger: 10, fun: 4 }, cost: 3_000 },
+      { label: 'Zobo', emoji: '🥤', fx: { hunger: 4, fun: 3, bladder: -6 }, cost: 800 },
+    ],
+  },
+  landmark: {
+    name: 'Landmark Beach', area: 'Oniru', emo: '🏖️', scene: 'beach', x: 214, y: 196,
+    status: 'Tide is out. Perfect for volleyball.',
+    acts: [
+      { label: 'Beach volleyball', emoji: '🏐', fx: { fun: 16, social: 10, energy: -12, hygiene: -6 } },
+      { label: 'Horse ride', emoji: '🐎', fx: { fun: 14, energy: -4 }, cost: 10_000 },
+      { label: 'Coconut water', emoji: '🥥', fx: { hunger: 6, energy: 4 }, cost: 1_500 },
     ],
   },
   banana: {
-    name: 'Banana Island', area: 'Nollyflix branch', emo: '🏝️', x: 232, y: 94,
-    blurb: 'Quiet, gated, expensive.',
+    name: 'Nollyflix Studios', area: 'Banana Island', emo: '🎬', scene: 'office', x: 232, y: 94,
+    status: 'Shooting season 2.',
     acts: [
-      { label: 'Inspect the branch', fx: { energy: -4 }, co: 'nollyflix', value: 300_000 },
-      { label: 'Pool day', fx: { fun: 16, hygiene: 10, energy: 6 } },
-    ],
-  },
-  eko: {
-    name: 'Eko Atlantic', area: 'Waterfront', emo: '🏖️', x: 110, y: 194,
-    blurb: 'A new city on reclaimed sand.',
-    acts: [
-      { label: 'Sunset walk on the beach', fx: { fun: 12, social: 8, energy: -4 } },
-      { label: 'Jet-ski rental', fx: { fun: 22, energy: -10, hygiene: -6 }, cost: 120_000 },
+      { label: 'Pep talk the crew', emoji: '📣', fx: { social: 6, energy: -6 }, co: 'nollyflix', value: 600_000 },
+      { label: 'Watch dailies', emoji: '🎞️', fx: { fun: 10 } },
+      { label: 'Pool day', emoji: '🏊🏾', fx: { fun: 16, hygiene: 10, energy: 6 } },
     ],
   },
 };
 
 /** Map y below which a place is on the mainland (north of the lagoon). */
 export const LAGOON_Y = 100;
+
+export const placeLabel = (id: PlaceId): string => `${PLACES[id].name} · ${PLACES[id].area}`;

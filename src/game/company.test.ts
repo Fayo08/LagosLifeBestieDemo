@@ -1,13 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { seed, ME } from '../data/seed.ts';
-import { makeBesties, canEndBestieship } from './people.ts';
-import { cashOut, createProposal, getCompany, recordVote, sellStake, stakePrice } from './company.ts';
+import { canEndBestieship } from './people.ts';
+import { sendChat, sleep } from './social.ts';
+import { cashOut, createProposal, getCompany, recordVote, sellStake, stakePrice, startJointCompany } from './company.ts';
 import { totalBps } from './money.ts';
 
+/** ochibu starts on a 2-day streak, so one chat today makes them your bestie. */
 function withBestie() {
   const S = seed();
-  makeBesties(S, 'ochibu');
+  sendChat(S, 'ochibu', 'What’s up?');
   return S;
 }
 
@@ -105,4 +107,43 @@ test('you cannot end a bestie-ship while you share a company or a ride', () => {
   assert.equal(canEndBestieship(S, true), false);
   sellStake(S, 'nollyflix', 30);
   assert.equal(canEndBestieship(S, false), false);
+});
+
+test('starting a company together splits ownership by what each of you put in', () => {
+  const S = withBestie();
+  const myCash = S.me.cash;
+  const r = startJointCompany(S, { name: 'Mama Put Express', kind: 'Restaurant', mine: 6_000_000, theirs: 4_000_000 });
+  assert.equal(r.ok, true);
+  const c = S.companies.find((x) => x.name === 'Mama Put Express');
+  assert.ok(c);
+  assert.deepEqual(c.owners, [{ id: ME, bps: 6000 }, { id: 'ochibu', bps: 4000 }]);
+  assert.equal(c.value, 10_000_000);
+  assert.equal(S.me.cash, myCash - 6_000_000);
+  assert.equal(S.friends[0].cash, 42_000_000 - 4_000_000);
+});
+
+test('awkward contributions still own exactly 100%', () => {
+  const S = withBestie();
+  startJointCompany(S, { name: 'Odd Split', kind: 'Restaurant', mine: 1_000_001, theirs: 2_000_003 });
+  const c = S.companies.find((x) => x.name === 'Odd Split');
+  assert.ok(c);
+  assert.equal(totalBps(c.owners), 10_000);
+});
+
+test('no company together without a live 3-day streak', () => {
+  const S = seed();
+  assert.equal(startJointCompany(S, { name: 'Too Soon', kind: 'Restaurant', mine: 1e6, theirs: 1e6 }).ok, false);
+  sendChat(S, 'ochibu', 'hi');
+  sleep(S);
+  sleep(S); // a whole day without chatting: the streak lapses
+  assert.equal(startJointCompany(S, { name: 'Too Late', kind: 'Restaurant', mine: 1e6, theirs: 1e6 }).ok, false);
+});
+
+test('starting a company checks both wallets and changes nothing on failure', () => {
+  const S = withBestie();
+  const before = S.companies.length;
+  const r = startJointCompany(S, { name: 'Too Big', kind: 'Restaurant', mine: 1e6, theirs: 99e6 });
+  assert.equal(r.ok, false);
+  assert.equal(S.companies.length, before);
+  assert.equal(S.friends[0].cash, 42_000_000);
 });

@@ -1,16 +1,49 @@
-import type { Company, CompanyId, GameState, Proposal } from '../types.ts';
+import type { Company, GameState, Proposal } from '../types.ts';
 import { BRANCHES } from '../data/script.ts';
 import { ME } from '../data/seed.ts';
-import { FULL, split } from './money.ts';
+import { FULL, proportional, split } from './money.ts';
 import { bestieOf, log, person } from './people.ts';
+import { canStartCompanyWith } from './social.ts';
 import { short } from './format.ts';
 
 export const MAX_STAKE_PCT = 49;
 export const UNANIMOUS_FROM = 1_000_000;
 export const BRANCH_COST = 6_000_000;
 export const HIRE_COST = 450_000;
+export const MIN_STAKE_IN = 500_000;
 
-export function getCompany(S: GameState, id: CompanyId): Company {
+/**
+ * Start a company with your bestie. You each put in cash and own it in
+ * proportion to what you put in, in basis points that sum to exactly 10_000.
+ */
+export function startJointCompany(
+  S: GameState,
+  draft: { name: string; kind: string; mine: number; theirs: number },
+): Result & { company?: Company } {
+  const f = bestieOf(S);
+  if (!f || !canStartCompanyWith(S, f.id)) return { ok: false, message: 'Keep a 3-day streak with your bestie first.' };
+  const name = draft.name.trim();
+  if (!name) return { ok: false, message: 'Give the company a name.' };
+  if (S.companies.some((c) => c.name.toLowerCase() === name.toLowerCase())) return { ok: false, message: `You already have a company called ${name}.` };
+  if (draft.mine < MIN_STAKE_IN || draft.theirs < MIN_STAKE_IN) return { ok: false, message: `You each need to put in at least ${short(MIN_STAKE_IN)}.` };
+  if (draft.mine > S.me.cash) return { ok: false, message: "You don't have that much." };
+  if (draft.theirs > f.cash) return { ok: false, message: `@${f.id} only has ${short(f.cash)}.` };
+  const bps = proportional(FULL, [{ id: ME, weight: draft.mine }, { id: f.id, weight: draft.theirs }]);
+  S.me.cash -= draft.mine;
+  f.cash -= draft.theirs;
+  const company: Company = {
+    id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + S.day,
+    name, kind: draft.kind, rating: 3.0,
+    value: draft.mine + draft.theirs, till: 0, last: 0,
+    owners: [{ id: ME, bps: bps[ME] }, { id: f.id, bps: bps[f.id] }],
+    branches: ['HQ'], staff: 1, staffMax: 5, proposals: [],
+  };
+  S.companies.push(company);
+  log(S, `Started ${name} with @${f.id}`);
+  return { ok: true, message: `${name} is open! You own ${(bps[ME] / 100).toFixed(0)}%, @${f.id} owns ${(bps[f.id] / 100).toFixed(0)}%.`, company };
+}
+
+export function getCompany(S: GameState, id: string): Company {
   const c = S.companies.find((x) => x.id === id);
   if (!c) throw new Error(`Unknown company: ${id}`);
   return c;
@@ -26,7 +59,7 @@ export type Result = { ok: true; message: string } | { ok: false; message: strin
  * Atomic stake sale: the buyer's naira and the seller's basis points move together or not at all.
  * Capped at 49% so the founder keeps control.
  */
-export function sellStake(S: GameState, companyId: CompanyId, pct: number): Result {
+export function sellStake(S: GameState, companyId: string, pct: number): Result {
   const c = getCompany(S, companyId);
   const f = bestieOf(S);
   if (!f) return { ok: false, message: 'Only besties can buy into your companies.' };
@@ -45,7 +78,7 @@ export function sellStake(S: GameState, companyId: CompanyId, pct: number): Resu
 }
 
 /** Empty the till into every owner's wallet by ownership. Returns each owner's share. */
-export function cashOut(S: GameState, companyId: CompanyId): Record<string, number> {
+export function cashOut(S: GameState, companyId: string): Record<string, number> {
   const c = getCompany(S, companyId);
   const shares = split(c.till, c.owners);
   for (const [id, v] of Object.entries(shares)) person(S, id).cash += v;
@@ -54,7 +87,7 @@ export function cashOut(S: GameState, companyId: CompanyId): Record<string, numb
   return shares;
 }
 
-export function eveningPayout(S: GameState, companyId: CompanyId, rand: number): number {
+export function eveningPayout(S: GameState, companyId: string, rand: number): number {
   const c = getCompany(S, companyId);
   const amount = Math.round(c.value * (0.22 + rand * 0.12));
   c.till = amount;
@@ -66,7 +99,7 @@ export function eveningPayout(S: GameState, companyId: CompanyId, rand: number):
  * Create a spending proposal. Spends of ₦1m or more need every owner;
  * smaller spends pass straight away for a majority owner.
  */
-export function createProposal(S: GameState, companyId: CompanyId, kind: Proposal['kind']): Proposal {
+export function createProposal(S: GameState, companyId: string, kind: Proposal['kind']): Proposal {
   const c = getCompany(S, companyId);
   const f = bestieOf(S);
   const cost = kind === 'branch' ? BRANCH_COST : HIRE_COST;

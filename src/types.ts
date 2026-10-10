@@ -1,28 +1,33 @@
 export type NeedKey = 'hunger' | 'energy' | 'fun' | 'social' | 'hygiene' | 'bladder';
 export type Needs = Record<NeedKey, number>;
 
-export type PlaceId = 'lekki' | 'yaba' | 'surulere' | 'balogun' | 'ikoyi' | 'vi' | 'banana' | 'eko';
-export type CompanyId = 'nollyflix' | 'lynqit' | 'xcode';
-export type ModeId = 'trek' | 'keke' | 'danfo' | 'okada' | 'cab' | 'driver' | 'bcar';
-export type Tab = 'bestie' | 'company' | 'map' | 'code';
+export type PlaceId = 'home' | 'ifitness' | 'balogun' | 'quilox' | 'yabahub' | 'suya' | 'landmark' | 'banana';
+export type SceneKind = 'home' | 'gym' | 'market' | 'club' | 'hub' | 'suya' | 'beach' | 'office';
+export type ModeId = 'trek' | 'keke' | 'danfo' | 'okada' | 'cab' | 'driver' | 'fcar';
+export type Tab = 'here' | 'map' | 'phone' | 'company' | 'code';
 
 export interface Activity {
   label: string;
+  emoji: string;
   fx: Partial<Needs>;
   cost?: number;
   /** Doing this activity raises the value of one of your companies. */
-  co?: CompanyId;
+  co?: string;
   value?: number;
 }
 
 export interface Place {
+  /** The venue's own name, e.g. "i-Fitness". */
   name: string;
+  /** Neighbourhood, e.g. "Ikoyi". */
   area: string;
   emo: string;
+  /** One-line vibe shown under the name, like the game's place card. */
+  status: string;
+  scene: SceneKind;
   /** Position on the 340×236 map. */
   x: number;
   y: number;
-  blurb: string;
   acts: Activity[];
 }
 
@@ -35,8 +40,8 @@ export interface Mode {
   per: 'seat' | 'car';
   /** Travel-time multiplier against a standard car. */
   mult: number;
-  /** Only offered when riding with your bestie (their own car). */
-  bestie?: boolean;
+  /** Only offered when a friend is coming (their own car). */
+  friendCar?: boolean;
 }
 
 export interface Person {
@@ -51,17 +56,30 @@ export interface Player extends Person {
   pos: PlaceId;
 }
 
-export interface Friend extends Player {
-  score: number;
-  home: PlaceId;
-  mood: string;
+export interface ChatMsg {
+  from: 'me' | 'them' | 'system';
+  text: string;
+  day: number;
 }
 
+export interface Friend extends Player {
+  home: PlaceId;
+  mood: string;
+  /** Consecutive in-game days you've chatted. */
+  streak: number;
+  /** The in-game day of your last message to them. */
+  lastChatDay: number;
+  /** 0–100. Built by chatting daily, going places and doing things together. */
+  trust: number;
+  thread: ChatMsg[];
+  /** Messages from them you haven't opened yet. */
+  unread: number;
+}
+
+/** Your bestie: the first friend you keep a 3-day streak with. */
 export interface Bestie {
   id: string;
   since: number;
-  level: number;
-  xp: number;
   hangouts: number;
   earned: number;
 }
@@ -86,7 +104,7 @@ export interface Proposal {
 }
 
 export interface Company {
-  id: CompanyId;
+  id: string;
   name: string;
   kind: string;
   rating: number;
@@ -104,8 +122,17 @@ export interface Hangout {
   loc: PlaceId;
   mode: ModeId;
   state: 'invited' | 'riding' | 'arrived';
-  together: boolean;
+  /** Friend you're out with, or null when alone. */
+  with: string | null;
   done: number[];
+}
+
+export interface StartupDraft {
+  name: string;
+  kind: string;
+  mine: number;
+  theirs: number;
+  pending: boolean;
 }
 
 export interface FeedItem {
@@ -120,17 +147,20 @@ export interface GameState {
   me: Player;
   friends: Friend[];
   bestie: Bestie | null;
-  pending: string | null;
+  /** Open chat thread, or null for the chat list. */
+  chatWith: string | null;
   confirmEnd: boolean;
   offerPending: boolean;
   needs: Needs;
   companies: Company[];
-  selCo: CompanyId;
+  selCo: string;
   stake: number;
+  startup: StartupDraft;
   sel: PlaceId | null;
   hangout: Hangout | null;
   mode: ModeId;
-  withBf: boolean;
+  /** Friend picked to come along on the next trip. */
+  companion: string | null;
   feed: FeedItem[];
   /** Last drawn map position of each avatar, so moves can animate. */
   disp: Record<string, { x: number; y: number }> | null;

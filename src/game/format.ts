@@ -21,3 +21,12 @@ export function clock(minutes: number): string {
 }
 
 export const clamp = (v: number, lo = 0, hi = 100): number => Math.max(lo, Math.min(hi, v));
+
+export const DAY_START = 6 * 60;
+export const NIGHT_START = 19 * 60;
+
+/** Daytime runs 6:00 AM to 6:59 PM in-game. */
+export function isDay(minutes: number): boolean {
+  const m = ((minutes % 1440) + 1440) % 1440;
+  return m >= DAY_START && m < NIGHT_START;
+}

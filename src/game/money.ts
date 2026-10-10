@@ -8,9 +8,20 @@ export const FULL = 10_000; // basis points
  * so nothing is lost or created by rounding.
  */
 export function split(amount: number, owners: Ownership[]): Record<string, number> {
-  const rows = owners.map((o) => {
-    const exact = (amount * o.bps) / FULL;
-    return { id: o.id, exact, share: Math.floor(exact) };
+  return proportional(amount, owners.map((o) => ({ id: o.id, weight: o.bps })));
+}
+
+/**
+ * Share a whole-number amount by weight with the largest-remainder method.
+ * Used for profit splits (weights are basis points) and for turning two
+ * cash contributions into ownership (amount is 10_000 basis points).
+ */
+export function proportional(amount: number, parts: { id: string; weight: number }[]): Record<string, number> {
+  const total = parts.reduce((s, p) => s + p.weight, 0);
+  if (total <= 0) return Object.fromEntries(parts.map((p) => [p.id, 0]));
+  const rows = parts.map((p) => {
+    const exact = (amount * p.weight) / total;
+    return { id: p.id, exact, share: Math.floor(exact) };
   });
   let remainder = amount - rows.reduce((s, r) => s + r.share, 0);
   [...rows]

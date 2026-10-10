@@ -1,7 +1,6 @@
 import type { Activity, GameState, NeedKey } from '../types.ts';
-import { clamp } from './format.ts';
+import { clamp, short } from './format.ts';
 import { getCompany } from './company.ts';
-import { short } from './format.ts';
 
 export const TOGETHER_MULTIPLIER = 1.5;
 
@@ -25,7 +24,7 @@ export function doActivity(S: GameState, act: Activity, together: boolean): { ok
     const applied = boost(S, k, v, together);
     if (applied > 0) gains.push(`+${applied} ${k}`);
   }
-  if (act.co && act.value) {
+  if (act.co && act.value && S.companies.some((x) => x.id === act.co)) {
     const c = getCompany(S, act.co);
     c.value += act.value;
     gains.push(`${c.name} +${short(act.value)}`);
