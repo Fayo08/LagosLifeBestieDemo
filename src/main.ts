@@ -3,7 +3,7 @@ import { S, resetState } from './state.ts';
 import { ME } from './data/seed.ts';
 import { clock, fmt, isDay } from './game/format.ts';
 import { getCompany, stakePrice } from './game/company.ts';
-import { bestieOf } from './game/people.ts';
+import { friendOf } from './game/people.ts';
 import { passTime } from './game/social.ts';
 import { FULL, proportional } from './game/money.ts';
 import * as A from './actions.ts';
@@ -98,7 +98,7 @@ content.addEventListener('input', (e) => {
   if (input.id === 'coMine' || input.id === 'coTheirs') {
     if (input.id === 'coMine') S.startup.mine = Number(input.value);
     else S.startup.theirs = Number(input.value);
-    const f = bestieOf(S);
+    const f = friendOf(S, S.chatWith);
     if (!f) return;
     const bps = proportional(FULL, [{ id: ME, weight: S.startup.mine }, { id: f.id, weight: S.startup.theirs }]);
     $('#coMineLbl').textContent = fmt(S.startup.mine);

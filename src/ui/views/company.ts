@@ -67,8 +67,9 @@ export function companyView(): string {
 }
 
 function startTogetherCta(): string {
-  const f = bestieOf(S);
-  if (f && canStartCompanyWith(S, f.id)) {
+  const ready = S.friends.filter((x) => canStartCompanyWith(S, x.id));
+  const f = ready.find((x) => x.id === S.bestie?.id) ?? ready[0] ?? null;
+  if (f) {
     const already = S.companies.some((c) => c.owners.some((o) => o.id === f.id));
     return `<div class="card"><div class="cta"><span class="ic">🤝</span><div class="grow"><b>Start ${already ? 'another' : 'a'} company with @${f.id}</b><div class="tiny muted">You each put money in and own it by what you put in.</div></div>
       <button class="btn sm btn-green" data-act="startupOpen" data-id="${f.id}">Start</button></div></div>`;

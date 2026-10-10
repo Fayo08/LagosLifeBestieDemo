@@ -1,7 +1,7 @@
 import type { ModeId, PlaceId, Proposal } from './types.ts';
 import { S } from './state.ts';
 import { PLACES, placeLabel } from './data/places.ts';
-import { FRIEND_REPLIES, TRUST } from './data/script.ts';
+import { FRIEND_REPLIES, STREAK_TO_UNLOCK, TRUST } from './data/script.ts';
 import { ME } from './data/seed.ts';
 import { bestieOf, canEndBestieship, friendOf, log } from './game/people.ts';
 import { addTrust, canStartCompanyWith, passTime, receiveChat, sendChat, sleep } from './game/social.ts';
@@ -47,6 +47,7 @@ export function chat(text: string): void {
   if (r.counted) toast(`🔥 ${r.streak}-day streak with @${f.id} · +${TRUST.dailyChat} trust`, 'good');
   r.messages.forEach((m) => toast(m, 'good'));
   if (r.becameBestie) toast(`@${f.id} is your bestie. Start a company together!`, 'good');
+  else if (r.counted && r.streak === STREAK_TO_UNLOCK) toast(`You can start a company with @${f.id} now`, 'good');
   typing.add(f.id);
   render();
   setTimeout(() => {
@@ -100,7 +101,7 @@ export function closeStartup(): void {
 }
 
 export function proposeStartup(): void {
-  const f = bestieOf(S);
+  const f = friendOf(S, S.chatWith);
   if (!f) return;
   const d = S.startup;
   S.startup.pending = true;
@@ -108,7 +109,7 @@ export function proposeStartup(): void {
   render();
   setTimeout(() => {
     S.startup.pending = false;
-    const r = startJointCompany(S, d);
+    const r = startJointCompany(S, f.id, d);
     if (r.ok && r.company) {
       receiveChat(S, f.id, `Yes!! Let's do it 🤝`);
       f.thread.push({ from: 'system', text: `🏢 ${r.company.name} is open. ${r.message.split('! ')[1] ?? ''}`, day: S.day });

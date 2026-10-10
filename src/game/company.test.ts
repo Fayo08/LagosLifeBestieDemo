@@ -6,11 +6,9 @@ import { sendChat, sleep } from './social.ts';
 import { cashOut, createProposal, getCompany, recordVote, sellStake, stakePrice, startJointCompany } from './company.ts';
 import { totalBps } from './money.ts';
 
-/** tolu starts on a 2-day streak, so one chat today makes them your bestie. */
+/** @tolu starts as your bestie on a 3-day streak. */
 function withBestie() {
-  const S = seed();
-  sendChat(S, 'tolu', 'What’s up?');
-  return S;
+  return seed();
 }
 
 test('a stake sale moves money and ownership together', () => {
@@ -32,6 +30,12 @@ test('stake sales are capped at 49% so you keep control', () => {
   assert.equal(getCompany(S, 'nollyflix').owners.length, 1);
 });
 
+test('a friend who just reached 3 days can start a company too', () => {
+  const S = seed();
+  sendChat(S, '2sugar', 'hi');
+  assert.equal(startJointCompany(S, '2sugar', { name: 'Sugar Rush', kind: 'Restaurant', mine: 1e6, theirs: 1e6 }).ok, true);
+});
+
 test('a sale the bestie cannot afford changes nothing', () => {
   const S = withBestie();
   S.friends[0].cash = 100;
@@ -43,6 +47,7 @@ test('a sale the bestie cannot afford changes nothing', () => {
 
 test('only besties can buy in', () => {
   const S = seed();
+  S.bestie = null;
   assert.equal(sellStake(S, 'nollyflix', 30).ok, false);
 });
 
@@ -103,6 +108,7 @@ test('approved costs come out of each wallet by ownership', () => {
 
 test('you cannot end a bestie-ship while you share a company or a ride', () => {
   const S = withBestie();
+  sendChat(S, 'tolu', 'hi');
   assert.equal(canEndBestieship(S, false), true);
   assert.equal(canEndBestieship(S, true), false);
   sellStake(S, 'nollyflix', 30);
@@ -112,7 +118,7 @@ test('you cannot end a bestie-ship while you share a company or a ride', () => {
 test('starting a company together splits ownership by what each of you put in', () => {
   const S = withBestie();
   const myCash = S.me.cash;
-  const r = startJointCompany(S, { name: 'Mama Put Express', kind: 'Restaurant', mine: 6_000_000, theirs: 4_000_000 });
+  const r = startJointCompany(S, 'tolu', { name: 'Mama Put Express', kind: 'Restaurant', mine: 6_000_000, theirs: 4_000_000 });
   assert.equal(r.ok, true);
   const c = S.companies.find((x) => x.name === 'Mama Put Express');
   assert.ok(c);
@@ -124,7 +130,7 @@ test('starting a company together splits ownership by what each of you put in', 
 
 test('awkward contributions still own exactly 100%', () => {
   const S = withBestie();
-  startJointCompany(S, { name: 'Odd Split', kind: 'Restaurant', mine: 1_000_001, theirs: 2_000_003 });
+  startJointCompany(S, 'tolu', { name: 'Odd Split', kind: 'Restaurant', mine: 1_000_001, theirs: 2_000_003 });
   const c = S.companies.find((x) => x.name === 'Odd Split');
   assert.ok(c);
   assert.equal(totalBps(c.owners), 10_000);
@@ -132,17 +138,16 @@ test('awkward contributions still own exactly 100%', () => {
 
 test('no company together without a live 3-day streak', () => {
   const S = seed();
-  assert.equal(startJointCompany(S, { name: 'Too Soon', kind: 'Restaurant', mine: 1e6, theirs: 1e6 }).ok, false);
-  sendChat(S, 'tolu', 'hi');
+  assert.equal(startJointCompany(S, '2sugar', { name: 'Too Soon', kind: 'Restaurant', mine: 1e6, theirs: 1e6 }).ok, false);
   sleep(S);
-  sleep(S); // a whole day without chatting: the streak lapses
-  assert.equal(startJointCompany(S, { name: 'Too Late', kind: 'Restaurant', mine: 1e6, theirs: 1e6 }).ok, false);
+  sleep(S); // a whole day without chatting: the streak with @tolu lapses
+  assert.equal(startJointCompany(S, 'tolu', { name: 'Too Late', kind: 'Restaurant', mine: 1e6, theirs: 1e6 }).ok, false);
 });
 
 test('starting a company checks both wallets and changes nothing on failure', () => {
   const S = withBestie();
   const before = S.companies.length;
-  const r = startJointCompany(S, { name: 'Too Big', kind: 'Restaurant', mine: 1e6, theirs: 99e6 });
+  const r = startJointCompany(S, 'tolu', { name: 'Too Big', kind: 'Restaurant', mine: 1e6, theirs: 99e6 });
   assert.equal(r.ok, false);
   assert.equal(S.companies.length, before);
   assert.equal(S.friends[0].cash, 42_000_000);

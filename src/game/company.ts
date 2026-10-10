@@ -2,7 +2,7 @@ import type { Company, GameState, Proposal } from '../types.ts';
 import { BRANCHES } from '../data/script.ts';
 import { ME } from '../data/seed.ts';
 import { FULL, proportional, split } from './money.ts';
-import { bestieOf, log, person } from './people.ts';
+import { bestieOf, friendOf, log, person } from './people.ts';
 import { canStartCompanyWith } from './social.ts';
 import { short } from './format.ts';
 
@@ -13,15 +13,16 @@ export const HIRE_COST = 450_000;
 export const MIN_STAKE_IN = 500_000;
 
 /**
- * Start a company with your bestie. You each put in cash and own it in
- * proportion to what you put in, in basis points that sum to exactly 10_000.
+ * Start a company with a friend you have a 3-day streak with. You each put in cash and
+ * own it in proportion to what you put in, in basis points that sum to exactly 10_000.
  */
 export function startJointCompany(
   S: GameState,
+  friendId: string,
   draft: { name: string; kind: string; mine: number; theirs: number },
 ): Result & { company?: Company } {
-  const f = bestieOf(S);
-  if (!f || !canStartCompanyWith(S, f.id)) return { ok: false, message: 'Keep a 3-day streak with your bestie first.' };
+  const f = friendOf(S, friendId);
+  if (!f || !canStartCompanyWith(S, f.id)) return { ok: false, message: `Keep a 3-day chat streak with @${friendId} first.` };
   const name = draft.name.trim();
   if (!name) return { ok: false, message: 'Give the company a name.' };
   if (S.companies.some((c) => c.name.toLowerCase() === name.toLowerCase())) return { ok: false, message: `You already have a company called ${name}.` };

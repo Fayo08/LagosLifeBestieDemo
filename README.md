@@ -8,7 +8,7 @@ It starts in your messages. Chat with a friend **three days running** and the st
 
 ## Try it
 
-1. **Phone tab:** open @tolu. You're on a 2-day streak, so one message today makes it 3 and they become your bestie.
+1. **Phone tab:** open @tolu. You're already on a 3-day streak, so @tolu is your bestie and a company together is unlocked. @2sugar is on 2 days: message them to watch a streak hit 3.
 2. **Start a company together:** you each put money in and own it by what you put in, to the basis point.
 3. **Link up** and ride to Quilox. Pick a vehicle, switch cameras, change the station and gist on the way.
 4. **Land together.** The Home tab shows the venue with both of you in the room. Every activity together builds trust; Paddy trust splits cabs.
@@ -57,7 +57,7 @@ src/
 ## Rules the code enforces
 
 - **Streaks count in-game days.** Message a friend on consecutive days to grow it; skip a whole day and it resets.
-- **A 3-day streak unlocks a company together.** The first friend you reach it with becomes your bestie.
+- **A 3-day streak unlocks a company together** with that friend. The first friend you reach it with becomes your bestie.
 - **Going places together needs no streak.** Any friend can come along. Friends with very low trust may say "not tonight".
 - **Trust is earned, not bought.** Daily chats, rides and activities together raise it. Paddy (30) splits cabs; Ride or Die (60) gets a spare house key.
 - **Ownership follows money in.** A company started together is split by each person's contribution.

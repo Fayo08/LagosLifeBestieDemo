@@ -69,6 +69,9 @@ export function sendChat(S: GameState, friendId: string, text: string): ChatResu
       becameBestie = true;
       f.thread.push({ from: 'system', text: `🔥 ${f.streak}-day streak! You and @${f.id} are besties. You can start a company together.`, day: S.day });
       log(S, `${f.streak}-day streak with @${f.id}. Besties!`);
+    } else if (f.streak === STREAK_TO_UNLOCK) {
+      f.thread.push({ from: 'system', text: `🔥 ${f.streak}-day streak! You can start a company together.`, day: S.day });
+      log(S, `${f.streak}-day streak with @${f.id}`);
     }
   }
   return { counted, streak: f.streak, becameBestie, messages };
@@ -78,10 +81,10 @@ export function receiveChat(S: GameState, friendId: string, text: string): void 
   friendOf(S, friendId)?.thread.push({ from: 'them', text, day: S.day });
 }
 
-/** Starting a company together needs your bestie and a streak that is still alive. */
+/** Starting a company together needs a 3-day streak with that friend that is still alive. */
 export function canStartCompanyWith(S: GameState, friendId: string): boolean {
   const f = friendOf(S, friendId);
-  return !!f && S.bestie?.id === f.id && liveStreak(f, S.day) >= STREAK_TO_UNLOCK;
+  return !!f && liveStreak(f, S.day) >= STREAK_TO_UNLOCK;
 }
 
 /** Move the in-game clock forward. Passing midnight starts a new day, which is what streaks count. */

@@ -42,7 +42,7 @@ function listView(): string {
       const prev = last ? (last.from === 'me' ? 'You: ' : '') + last.text : 'Say hi';
       return `<button class="chatrow" data-act="openChat" data-id="${f.id}">${avatar(f.id, 56)}
         <span class="grow"><b>@${f.id}</b><span class="prev ${f.unread ? 'fresh' : ''}">${escapeHtml(prev)}</span></span>
-        <span class="side"><span class="when ${f.unread ? 'new' : ''}">${when(last)}</span>${f.unread ? `<span class="badge-n">${f.unread}</span>` : streakBadge(f)}</span>
+        <span class="side"><span class="when ${f.unread ? 'new' : ''}">${when(last)}</span><span class="row" style="gap:4px">${streakBadge(f)}${f.unread ? `<span class="badge-n">${f.unread}</span>` : ''}</span></span>
       </button>`;
     }).join('');
   const atRisk = S.friends.filter((f) => streakAtRisk(f, S.day));
@@ -95,14 +95,21 @@ function threadView(f: Friend): string {
         <button class="btn sm btn-dark" data-act="linkUp" data-id="${f.id}" ${isRiding() ? 'disabled' : ''}>🚗 Link up</button>
         <button class="btn sm btn-green" data-act="startupOpen" data-id="${f.id}" ${canCompany ? '' : 'disabled'}>🏢 Start a company</button>
       </div>
-      ${!canCompany && f.id === (S.bestie?.id ?? f.id) ? `<span class="tiny muted">${streak >= STREAK_TO_UNLOCK ? '' : `Chat ${STREAK_TO_UNLOCK - streak} more day${STREAK_TO_UNLOCK - streak > 1 ? 's' : ''} in a row to unlock a company together.`}</span>` : ''}
-      ${!canCompany && S.bestie && S.bestie.id !== f.id ? `<span class="tiny muted">Companies together are for your bestie, @${S.bestie.id}.</span>` : ''}
+      ${canCompany ? '' : `<span class="tiny muted">${streakHint(f)}</span>`}
     </div>
     <div class="msgs">${msgs}</div>
-    ${isBestie && (S.startup.pending || startupFor === f.id) ? startupForm(f) : ''}
+    ${startupFor === f.id || (S.startup.pending && S.chatWith === f.id) ? startupForm(f) : ''}
     <div class="qr">${QUICK_REPLIES.map((q) => `<button data-act="quick" data-text="${q}">${q}</button>`).join('')}</div>
     <form class="composer" data-act="none" id="composer"><input id="chatInput" type="text" autocomplete="off" placeholder="Message @${f.id}" aria-label="Message"><button class="send" type="submit" aria-label="Send">${SEND_ICON}</button></form>
     ${isBestie ? endBestie() : ''}`;
+}
+
+function streakHint(f: Friend): string {
+  const streak = liveStreak(f, S.day);
+  const left = STREAK_TO_UNLOCK - streak;
+  if (streak === 0) return `Chat ${STREAK_TO_UNLOCK} days in a row to unlock a company together.`;
+  if (f.lastChatDay === S.day) return `Come back tomorrow: ${left} more day${left > 1 ? 's' : ''} to unlock a company together.`;
+  return `Message today: ${left} more day${left > 1 ? 's' : ''} to unlock a company together.`;
 }
 
 /** Which thread has the company form open. */

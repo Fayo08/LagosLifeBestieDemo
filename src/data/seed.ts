@@ -13,20 +13,23 @@ export function seed(): GameState {
     friends: [
       {
         id: 'tolu', initials: 'TO', color: '#3b7cf0', cash: 42_000_000, pos: 'yabahub', home: 'yabahub', mood: 'Happy',
-        streak: 2, lastChatDay: day - 1, trust: 22,
+        streak: 3, lastChatDay: day, trust: 28,
         thread: [
           { from: 'them', text: 'Fayo! You saw my message about Quilox?', day: day - 2 },
           { from: 'me', text: 'Lol yes. Next weekend?', day: day - 2 },
           { from: 'them', text: 'Deal. Also we need to make money together abeg', day: day - 1 },
           { from: 'me', text: 'Say less 😂', day: day - 1 },
-          { from: 'them', text: 'Fayo, you up? 👀', day },
+          { from: 'me', text: 'Morning! You good?', day },
+          { from: 'system', text: '🔥 3-day streak! You and @tolu are besties. You can start a company together.', day },
+          { from: 'them', text: 'Fayo, you up? 👀 Let’s talk business', day },
         ],
         unread: 1,
       },
       {
         id: '2sugar', initials: '2S', color: '#8a5cf3', cash: 15_000_000, pos: 'suya', home: 'suya', mood: 'Fine',
-        streak: 1, lastChatDay: day - 1, trust: 12,
+        streak: 2, lastChatDay: day - 1, trust: 12,
         thread: [
+          { from: 'me', text: 'Safe trip!', day: day - 2 },
           { from: 'them', text: 'Back to Lagos!', day: day - 1 },
           { from: 'me', text: 'Welcome back!!', day: day - 1 },
         ],
@@ -39,7 +42,7 @@ export function seed(): GameState {
         unread: 1,
       },
     ],
-    bestie: null,
+    bestie: { id: 'tolu', since: day, hangouts: 0, earned: 0 },
     chatWith: null,
     confirmEnd: false,
     offerPending: false,
