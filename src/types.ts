@@ -4,7 +4,7 @@ export type Needs = Record<NeedKey, number>;
 export type PlaceId = 'home' | 'ifitness' | 'balogun' | 'quilox' | 'yabahub' | 'suya' | 'landmark' | 'banana';
 export type SceneKind = 'home' | 'gym' | 'market' | 'club' | 'hub' | 'suya' | 'beach' | 'office';
 export type ModeId = 'trek' | 'keke' | 'danfo' | 'okada' | 'cab' | 'driver' | 'fcar';
-export type Tab = 'here' | 'map' | 'phone' | 'company' | 'code';
+export type Tab = 'here' | 'map' | 'phone' | 'company';
 
 export interface Activity {
   label: string;

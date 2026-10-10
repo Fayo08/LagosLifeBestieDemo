@@ -8,7 +8,6 @@ import { hereView, mountHere } from './views/here.ts';
 import { mapView, placeAvatars } from './views/map.ts';
 import { phoneView } from './views/phone.ts';
 import { companyView } from './views/company.ts';
-import { codeView } from './views/code.ts';
 import { rideVisibleOn } from './views/shared.ts';
 
 const VIEWS: Record<Tab, () => string> = {
@@ -16,7 +15,6 @@ const VIEWS: Record<Tab, () => string> = {
   map: mapView,
   phone: phoneView,
   company: companyView,
-  code: codeView,
 };
 
 /** Re-render the HUD and the current tab. `animate` slides map avatars to their new spots. */

@@ -8,7 +8,7 @@ It starts in your messages. Chat with a friend **three days running** and the st
 
 ## Try it
 
-1. **Phone tab:** open @ochibu. You're on a 2-day streak, so one message today makes it 3 and they become your bestie.
+1. **Phone tab:** open @tolu. You're on a 2-day streak, so one message today makes it 3 and they become your bestie.
 2. **Start a company together:** you each put money in and own it by what you put in, to the basis point.
 3. **Link up** and ride to Quilox. Pick a vehicle, switch cameras, change the station and gist on the way.
 4. **Land together.** The Home tab shows the venue with both of you in the room. Every activity together builds trust; Paddy trust splits cabs.
@@ -51,7 +51,7 @@ src/
   ui/
     render.ts           Renders the current tab, day or night
     scene.ts            Isometric venue scene with everyone's name tags
-    views/              Home (venue), Map, Phone (messages), Company, Dev
+    views/              Home (venue), Map, Phone (messages), Company
 ```
 
 ## Rules the code enforces
@@ -71,8 +71,6 @@ src/
 - **No orphaned companies.** You can't end a bestie-ship while you still share a company or a ride.
 
 ## Taking it to production
-
-The "Under hood" tab in the app covers this in more detail. In short:
 
 - **Server-authoritative.** Clients send intents (`sell_stake`, `vote`, `start_ride`). The server validates them with the same rules as `src/game` and broadcasts the result.
 - **One ride, two phones.** A ride is one shared object with a `startedAt` time. Both clients compute progress from the server clock, so the two cars stay in sync. Radio, gist and hawker purchases are small events on the ride channel.

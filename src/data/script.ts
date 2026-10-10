@@ -83,7 +83,7 @@ export const CROWDS: Record<SceneKind, string[]> = {
   home: [],
   gym: ['Himhorleh', 'kingdevvy', 'justonerandomguy', 'fati_eko', 'imolegracefundz', 'black_hustler'],
   market: ['holymajor', 'ayamjomi', 'Bolutifey', 'Arigaato', 'Hen_ry002', 'michaelade'],
-  club: ['dj_shakara', 'owambe_queen', 'tolu.vibes', 'BigManBayo', 'ada_lekki', 'emeka_fresh'],
+  club: ['dj_shakara', 'owambe_queen', 'tobi.vibes', 'BigManBayo', 'ada_lekki', 'emeka_fresh'],
   hub: ['codewithkemi', 'dami_builds', 'yaba_hustle', 'seyi.dev', 'pm_nneka'],
   suya: ['mallam_sule', 'suya_lover', 'ope.eats', 'sandra_k'],
   beach: ['beachboy_ola', 'tamuno.t', 'zainab_waves', 'kola_kicks', 'adaeze'],

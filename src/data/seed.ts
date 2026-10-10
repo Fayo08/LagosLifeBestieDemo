@@ -12,7 +12,7 @@ export function seed(): GameState {
     me: { id: ME, initials: 'FS', color: '#e98a2b', cash: 1_170_512_748, pos: 'home' },
     friends: [
       {
-        id: 'ochibu', initials: 'OC', color: '#3b7cf0', cash: 42_000_000, pos: 'yabahub', home: 'yabahub', mood: 'Happy',
+        id: 'tolu', initials: 'TO', color: '#3b7cf0', cash: 42_000_000, pos: 'yabahub', home: 'yabahub', mood: 'Happy',
         streak: 2, lastChatDay: day - 1, trust: 22,
         thread: [
           { from: 'them', text: 'Fayo! You saw my message about Quilox?', day: day - 2 },
@@ -24,7 +24,7 @@ export function seed(): GameState {
         unread: 1,
       },
       {
-        id: 'Tobiv_xs', initials: 'TX', color: '#8a5cf3', cash: 15_000_000, pos: 'suya', home: 'suya', mood: 'Fine',
+        id: '2sugar', initials: '2S', color: '#8a5cf3', cash: 15_000_000, pos: 'suya', home: 'suya', mood: 'Fine',
         streak: 1, lastChatDay: day - 1, trust: 12,
         thread: [
           { from: 'them', text: 'Back to Lagos!', day: day - 1 },
@@ -33,7 +33,7 @@ export function seed(): GameState {
         unread: 0,
       },
       {
-        id: 'theofficial_demzy', initials: 'DM', color: '#e64b98', cash: 9_000_000, pos: 'ifitness', home: 'ifitness', mood: 'Bored',
+        id: 'uchemoney', initials: 'UM', color: '#e64b98', cash: 9_000_000, pos: 'ifitness', home: 'ifitness', mood: 'Bored',
         streak: 0, lastChatDay: day - 5, trust: 4,
         thread: [{ from: 'them', text: 'yww', day: day - 5 }],
         unread: 1,
