@@ -4,7 +4,7 @@ A working prototype of a **Besties** feature for [Lagos Life](https://lagoslife.
 
 Lagos Life already has friends, chats, companies and rides across the city. Besties ties them together: two players who **own businesses together**, **split the till**, and **ride through Lagos in the same car**.
 
-> Independent concept by Fayosi, a frontend and UX developer. Not affiliated with the Lagos Life team.
+> Independent concept by Favour Oyende, a frontend and UX developer. Not affiliated with the Lagos Life team.
 
 ## Try it
 
