@@ -10,6 +10,9 @@ const friend = (S: ReturnType<typeof seed>, id: string) => {
   return f;
 };
 
+// Read through a function so TypeScript doesn't keep a narrowed `null` after sendChat sets it
+const bestieId = (S: ReturnType<typeof seed>) => S.bestie?.id;
+
 test('the demo starts with one 3-day streak, ready for a company', () => {
   const S = seed();
   assert.equal(liveStreak(friend(S, 'tolu'), S.day), 3);
@@ -48,7 +51,7 @@ test('your first 3-day streak becomes your bestie', () => {
   S.bestie = null;
   const r = sendChat(S, '2sugar', 'hi');
   assert.equal(r.becameBestie, true);
-  assert.equal(S.bestie?.id, '2sugar');
+  assert.equal(bestieId(S), '2sugar');
 });
 
 test('a streak is at risk the next day and lapses the day after', () => {
