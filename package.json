@@ -1,0 +1,22 @@
+{
+  "name": "lagos-life-besties",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A working prototype of a Besties feature for Lagos Life: co-own companies, split profits, and ride through Lagos together.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --no-warnings --test \"src/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "22.9.0",
+    "typescript": "5.6.3",
+    "vite": "5.4.10"
+  }
+}
