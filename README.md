@@ -4,7 +4,7 @@ A working prototype of a **Besties** feature for [Lagos Life](https://lagoslife.
 
 It starts in your messages. Chat with a friend **three days running** and the streak unlocks a **company you start together**. Going places together is open from day one: pick a ride, pick up your friend, and land together at named spots like i-Fitness, Quilox and Balogun Market. Every chat, ride and activity together builds **trust**, which opens more perks.
 
-> Independent concept by Favour Oyende, a frontend and UX developer. Not affiliated with the Lagos Life team.
+> Independent concept by Favour Oyende, a Full-stack developer. Not affiliated with the Lagos Life team.
 
 ## Try it
 
